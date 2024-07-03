@@ -1,7 +1,7 @@
 name: flavor_tools
-description: A starting point for Dart libraries or applications.
+description: Easily create and manage application flavors
 version: 1.0.0
-# repository: https://github.com/my_org/my_repo
+repository: https://github.com/EclipseAndrey/flavor_tools
 
 environment:
   sdk: ^3.4.0
@@ -12,6 +12,7 @@ dependencies:
   xcode_parser: ^1.0.6
   args: ^2.0.0
   xml: ^6.5.0
+  collection: ^1.19.0
 
 dev_dependencies:
   lints: ^3.0.0

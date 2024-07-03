@@ -37,3 +37,9 @@ or
 ```shell
 $ dart pub add flavor_tools
 ```
+
+## Get start
+
+```shell
+$ dart pub run flavor_tools create -p com.example.app -f flavorName -d "App display name"]
+```
