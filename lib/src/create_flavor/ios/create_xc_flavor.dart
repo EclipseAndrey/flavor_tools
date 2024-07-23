@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flavor_tools/flavor_tools.dart';
+import 'package:flavor_tools/src/create_flavor/ios/check_runner_entitlements.dart';
 import 'package:flavor_tools/src/create_flavor/ios/update_infoplist.dart';
 import 'package:flavor_tools/src/create_flavor/models/create_xc_configuration.dart';
 import 'package:flavor_tools/src/create_flavor/models/create_xc_scheme.dart';
@@ -11,6 +12,7 @@ createXcFlavor(FlavorConfig config) async {
   final String package = config.iosPackageName;
   final String displayName = config.displayName;
 
+  await checkRunnerEntitlements(config.runnerEntitlementsPath);
   await updateInfoPlist(config.plistPath, displayName);
 
   var project = await Pbxproj.open(config.xcPath);
@@ -65,12 +67,9 @@ createXcFlavor(FlavorConfig config) async {
   addXCConfigurationListNativeTarget(project, BuildType.debug, flavor, uuidDebugBuildConfiguration2);
   addXCConfigurationListNativeTarget(project, BuildType.profile, flavor, uuidProfileBuildConfiguration2);
   //addXCBuildConfiguration
-  addXCBuildConfiguration(
-      project, BuildType.release, flavor, uuidReleaseRef, uuidReleaseBuildConfiguration1, config.iosTeamId);
-  addXCBuildConfiguration(
-      project, BuildType.debug, flavor, uuidDebugRef, uuidDebugBuildConfiguration1, config.iosTeamId);
-  addXCBuildConfiguration(
-      project, BuildType.profile, flavor, uuidReleaseRef, uuidProfileBuildConfiguration1, config.iosTeamId);
+  addXCBuildConfiguration(project, BuildType.release, uuidReleaseRef, uuidReleaseBuildConfiguration1, config);
+  addXCBuildConfiguration(project, BuildType.debug, uuidDebugRef, uuidDebugBuildConfiguration1, config);
+  addXCBuildConfiguration(project, BuildType.profile, uuidReleaseRef, uuidProfileBuildConfiguration1, config);
   //addXCBuildConfigurationSecond
   addXCBuildConfigurationSecond(project, BuildType.release, flavor, uuidReleaseRef, uuidReleaseBuildConfiguration2);
   addXCBuildConfigurationSecond(project, BuildType.debug, flavor, uuidDebugRef, uuidDebugBuildConfiguration2);
@@ -91,7 +90,7 @@ Future<void> createXcConfig(BuildType buildType, String flavor, String package, 
     await file.create();
   }
   final content = StringBuffer();
-  content.writeln('#include "Pods/Target Support Files/Pods-Runner/Pods-Runner.${buildType.name}.xcconfig"');
+  content.writeln('#include? "Pods/Target Support Files/Pods-Runner/Pods-Runner.${buildType.name}.xcconfig"');
   content.writeln('#include "Generated.xcconfig"');
   content.writeln('bundle_id = $package');
   content.writeln('app_display_name = $displayName');
@@ -183,11 +182,11 @@ Pbxproj addXCConfigurationListNativeTarget(Pbxproj project, BuildType buildType,
 }
 
 Pbxproj addXCBuildConfiguration(
-    Pbxproj project, BuildType buildType, String flavor, String uuidRef, String uuidConfiguration, String teamId) {
+    Pbxproj project, BuildType buildType, String uuidRef, String uuidConfiguration, FlavorConfig config) {
   //XCBuildConfiguration section
   final map = project.find<MapPbx>('objects');
   final section = map?.find<SectionPbx>('XCBuildConfiguration');
-  final insertValue = createXCConfigurationFirstDebug(buildType, flavor, uuidRef, uuidConfiguration, teamId);
+  final insertValue = createXCConfigurationFirstDebug(buildType, uuidRef, uuidConfiguration, config);
   section?.add(insertValue);
   if (section == null) CreateFlavorExit.notFound();
   return project;

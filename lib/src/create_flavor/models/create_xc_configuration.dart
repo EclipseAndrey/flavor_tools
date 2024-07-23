@@ -1,19 +1,19 @@
 import 'package:flavor_tools/flavor_tools.dart';
 import 'package:xcode_parser/xcode_parser.dart';
 
-MapPbx createXCConfigurationFirst(BuildType type, flavor, String uuidRef, String uuid, String teamId) {
-  final config = createXCConfigurationFirstDebug(type, flavor, uuidRef, uuid, teamId);
+MapPbx createXCConfigurationFirst(BuildType type, String uuidRef, String uuid, String teamId, FlavorConfig config) {
+  final configXC = createXCConfigurationFirstDebug(type, uuidRef, uuid, config);
   switch (type) {
     case BuildType.debug:
-      return config;
+      return configXC;
     case BuildType.profile:
-      final buildSettings = config.find<MapPbx>('buildSettings');
+      final buildSettings = configXC.find<MapPbx>('buildSettings');
       buildSettings?.remove('SWIFT_OPTIMIZATION_LEVEL');
-      return config;
+      return configXC;
     case BuildType.release:
-      final buildSettings = config.find<MapPbx>('buildSettings');
+      final buildSettings = configXC.find<MapPbx>('buildSettings');
       buildSettings?.remove('SWIFT_OPTIMIZATION_LEVEL');
-      return config;
+      return configXC;
   }
 }
 
@@ -52,24 +52,24 @@ MapPbx createXCConfigurationSecond(BuildType type, flavor, String uuidRef, Strin
   }
 }
 
-MapPbx createXCConfigurationFirstDebug(BuildType type, flavor, String uuidRef, String uuid, String teamId) {
+MapPbx createXCConfigurationFirstDebug(BuildType type, String uuidRef, String uuid, FlavorConfig config) {
   return MapPbx(
-    comment: '$type-$flavor',
+    comment: '$type-${config.flavorName}',
     uuid: uuid,
     children: [
       MapEntryPbx('isa', VarPbx('XCBuildConfiguration')),
-      MapEntryPbx('baseConfigurationReference', VarPbx(uuidRef), comment: '$type-$flavor.xcconfig'),
+      MapEntryPbx('baseConfigurationReference', VarPbx(uuidRef), comment: '$type-${config.flavorName}.xcconfig'),
       MapPbx(
         uuid: 'buildSettings',
         children: [
-          MapEntryPbx('APP_DISPLAY_NAME', VarPbx('"\${app_display_name}"')),
-          MapEntryPbx('ASSETCATALOG_COMPILER_APPICON_NAME', VarPbx('"\${app_display_icon}"')),
+          MapEntryPbx('APP_DISPLAY_NAME', VarPbx(config.APP_DISPLAY_NAME)),
+          MapEntryPbx('ASSETCATALOG_COMPILER_APPICON_NAME', VarPbx(config.ASSETCATALOG_COMPILER_APPICON_NAME)),
           MapEntryPbx('CLANG_ENABLE_MODULES', VarPbx('YES')),
           MapEntryPbx('CODE_SIGN_ENTITLEMENTS', VarPbx('Runner/Runner.entitlements')),
           MapEntryPbx('CODE_SIGN_IDENTITY', VarPbx('"Apple Development"')),
           MapEntryPbx('CODE_SIGN_STYLE', VarPbx('Automatic')),
           MapEntryPbx('CURRENT_PROJECT_VERSION', VarPbx('"\$(FLUTTER_BUILD_NUMBER)"')),
-          MapEntryPbx('DEVELOPMENT_TEAM', VarPbx(teamId)),
+          MapEntryPbx('DEVELOPMENT_TEAM', VarPbx(config.iosTeamId)),
           MapEntryPbx('ENABLE_BITCODE', VarPbx('NO')),
           MapEntryPbx('INFOPLIST_FILE', VarPbx('Runner/Info.plist')),
           ListPbx('LD_RUNPATH_SEARCH_PATHS', [
@@ -82,6 +82,7 @@ MapPbx createXCConfigurationFirstDebug(BuildType type, flavor, String uuidRef, S
           MapEntryPbx('SUPPORTED_PLATFORMS', VarPbx('"iphoneos iphonesimulator"')),
           MapEntryPbx('SUPPORTS_MACCATALYST', VarPbx('NO')),
           MapEntryPbx('SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD', VarPbx('NO')),
+          MapEntryPbx('SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD', VarPbx('NO')),
           MapEntryPbx('SWIFT_OBJC_BRIDGING_HEADER', VarPbx('"Runner/Runner-Bridging-Header.h"')),
           MapEntryPbx('SWIFT_OPTIMIZATION_LEVEL', VarPbx('"-Onone"')),
           MapEntryPbx('SWIFT_VERSION', VarPbx('5.0')),
@@ -90,7 +91,7 @@ MapPbx createXCConfigurationFirstDebug(BuildType type, flavor, String uuidRef, S
           MapEntryPbx('app_display_name', VarPbx('"\${app_display_name}"')),
         ],
       ),
-      MapEntryPbx('name', VarPbx('"$type-$flavor"')),
+      MapEntryPbx('name', VarPbx('"$type-${config.flavorName}"')),
     ],
   );
 }

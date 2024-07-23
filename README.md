@@ -31,15 +31,28 @@
 Incorporate the package into your Dart or Flutter project by adding it as a dependency in your `pubspec.yaml` file:
 ```yaml
 dependencies:
-  flavor_tools: ^1.0.0
+  flavor_tools: ^1.0.4
 ```
 or
 ```shell
 $ dart pub add flavor_tools
 ```
 
-## Get start
+## Get started
 
 ```shell
-$ dart pub run flavor_tools create -p com.example.app -f flavorName -d "App display name"]
+$ dart pub run flavor_tools create -p com.example.app -f flavorName -d "App display name"
+```
+#### Additional
+
+- `-t [TeamId]` - include TeamId to flavor.
+- `--iconsLauncher=true` - if using package `flutter_launcher_icons` for flavors.
+- `-x [path/to/Runner.xcodeproj/project.pbxproj]`
+
+
+
+## Run flavor
+
+```shell
+$ flutter run --flavor=flavorName
 ```

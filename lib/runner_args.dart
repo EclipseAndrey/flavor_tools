@@ -40,6 +40,7 @@ class CreateCommand extends Command {
       ..addOption('displayName', abbr: 'd', help: 'Display name of the application.')
       ..addOption('flavorName', abbr: 'f', help: 'Flavor name of the application.')
       ..addOption('pathXcProject', abbr: 'x', help: 'Path to the Xcode project (optional).')
+      ..addOption('iconsLauncher', help: 'Supports icons (optional).', defaultsTo: 'false')
       ..addOption('teamId', abbr: 't', help: 'Team ID of the IOS application (DEFAULT: none).', defaultsTo: '""');
   }
 
@@ -72,7 +73,8 @@ class CreateCommand extends Command {
         androidPackageName: (packageNameAndroid ?? packageName)!,
         displayName: displayName,
         flavorName: flavorName,
-        iosTeamId: teamId);
+        iosTeamId: teamId,
+        isEnabledIconsLauncher: (argResults?['iconsLauncher'] ?? 'false') == 'true');
 
     await createFlavor(config);
   }
