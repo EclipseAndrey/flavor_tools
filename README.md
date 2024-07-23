@@ -4,15 +4,7 @@
     </a>
 </p>
 
-[//]: # (<p align="center">)
 
-[//]: # (  <a href="https://codecov.io/gh/EclipseAndrey/xcode_parser"><img src="https://codecov.io/gh/EclipseAndrey/xcode_parser/branch/main/graph/badge.svg" alt="codecov"></a>)
-
-[//]: # (  <a href="https://github.com/EclipseAndrey/xcode_parser/actions"><img src="https://github.com/EclipseAndrey/xcode_parser/actions/workflows/dart.yml/badge.svg" alt="xcode_parser"></a>)
-
-[//]: # (  <a href="https://github.com/EclipseAndrey/xcode_parser/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License: MIT"></a>)
-
-[//]: # (</p>)
 
 
 
@@ -31,7 +23,7 @@
 Incorporate the package into your Dart or Flutter project by adding it as a dependency in your `pubspec.yaml` file:
 ```yaml
 dependencies:
-  flavor_tools: ^1.0.4
+  flavor_tools: ^1.0.6
 ```
 or
 ```shell
