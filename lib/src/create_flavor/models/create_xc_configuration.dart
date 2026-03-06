@@ -1,8 +1,10 @@
 import 'package:flavor_tools/flavor_tools.dart';
+import 'package:flavor_tools/src/create_flavor/models/existing_project_settings.dart';
 import 'package:xcode_parser/xcode_parser.dart';
 
-MapPbx createXCConfigurationFirst(BuildType type, String uuidRef, String uuid, String teamId, FlavorConfig config) {
-  final configXC = createXCConfigurationFirstDebug(type, uuidRef, uuid, config);
+MapPbx createXCConfigurationFirst(BuildType type, String uuidRef, String uuid, String teamId, FlavorConfig config,
+    ExistingProjectSettings projectSettings) {
+  final configXC = createXCConfigurationFirstDebug(type, uuidRef, uuid, config, projectSettings);
   switch (type) {
     case BuildType.debug:
       return configXC;
@@ -17,8 +19,9 @@ MapPbx createXCConfigurationFirst(BuildType type, String uuidRef, String uuid, S
   }
 }
 
-MapPbx createXCConfigurationSecond(BuildType type, flavor, String uuidRef, String uuid) {
-  final config = createXCConfigurationSecondDebug(type, flavor, uuidRef, uuid);
+MapPbx createXCConfigurationSecond(
+    BuildType type, flavor, String uuidRef, String uuid, ExistingProjectSettings projectSettings) {
+  final config = createXCConfigurationSecondDebug(type, flavor, uuidRef, uuid, projectSettings);
   switch (type) {
     case BuildType.debug:
       return config;
@@ -52,7 +55,8 @@ MapPbx createXCConfigurationSecond(BuildType type, flavor, String uuidRef, Strin
   }
 }
 
-MapPbx createXCConfigurationFirstDebug(BuildType type, String uuidRef, String uuid, FlavorConfig config) {
+MapPbx createXCConfigurationFirstDebug(
+    BuildType type, String uuidRef, String uuid, FlavorConfig config, ExistingProjectSettings projectSettings) {
   return MapPbx(
     comment: '$type-${config.flavorName}',
     uuid: uuid,
@@ -84,8 +88,8 @@ MapPbx createXCConfigurationFirstDebug(BuildType type, String uuidRef, String uu
           MapEntryPbx('SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD', VarPbx('NO')),
           MapEntryPbx('SWIFT_OBJC_BRIDGING_HEADER', VarPbx('"Runner/Runner-Bridging-Header.h"')),
           MapEntryPbx('SWIFT_OPTIMIZATION_LEVEL', VarPbx('"-Onone"')),
-          MapEntryPbx('SWIFT_VERSION', VarPbx('6.0')),
-          MapEntryPbx('TARGETED_DEVICE_FAMILY', VarPbx('"1,2"')),
+          MapEntryPbx('SWIFT_VERSION', VarPbx(projectSettings.swiftVersion)),
+          MapEntryPbx('TARGETED_DEVICE_FAMILY', VarPbx(projectSettings.targetedDeviceFamily)),
           MapEntryPbx('VERSIONING_SYSTEM', VarPbx('"apple-generic"')),
           MapEntryPbx('app_display_name', VarPbx('"\${app_display_name}"')),
         ],
@@ -95,14 +99,15 @@ MapPbx createXCConfigurationFirstDebug(BuildType type, String uuidRef, String uu
   );
 }
 
-MapPbx createXCConfigurationSecondDebug(BuildType type, String flavor, String uuidRef, String uuid) {
+MapPbx createXCConfigurationSecondDebug(
+    BuildType type, String flavor, String uuidRef, String uuid, ExistingProjectSettings projectSettings) {
   return MapPbx(uuid: uuid, comment: '$type-$flavor', children: [
     MapEntryPbx('isa', VarPbx('XCBuildConfiguration')),
     MapEntryPbx('baseConfigurationReference', VarPbx(uuidRef), comment: '$type-$flavor.xcconfig'),
     MapPbx(uuid: 'buildSettings', children: [
       MapEntryPbx('ALWAYS_SEARCH_USER_PATHS', VarPbx('NO')),
       MapEntryPbx('CLANG_ANALYZER_NONNULL', VarPbx('YES')),
-      MapEntryPbx('CLANG_CXX_LANGUAGE_STANDARD', VarPbx('"gnu++20"')),
+      MapEntryPbx('CLANG_CXX_LANGUAGE_STANDARD', VarPbx(projectSettings.clangCxxLanguageStandard)),
       MapEntryPbx('CLANG_CXX_LIBRARY', VarPbx('"libc++"')),
       MapEntryPbx('CLANG_ENABLE_MODULES', VarPbx('YES')),
       MapEntryPbx('CLANG_ENABLE_OBJC_ARC', VarPbx('YES')),
@@ -130,7 +135,7 @@ MapPbx createXCConfigurationSecondDebug(BuildType type, String flavor, String uu
       MapEntryPbx('DEBUG_INFORMATION_FORMAT', VarPbx('dwarf')),
       MapEntryPbx('ENABLE_STRICT_OBJC_MSGSEND', VarPbx('YES')),
       MapEntryPbx('ENABLE_TESTABILITY', VarPbx('YES')),
-      MapEntryPbx('GCC_C_LANGUAGE_STANDARD', VarPbx('gnu17')),
+      MapEntryPbx('GCC_C_LANGUAGE_STANDARD', VarPbx(projectSettings.gccCLanguageStandard)),
       MapEntryPbx('GCC_DYNAMIC_NO_PIC', VarPbx('NO')),
       MapEntryPbx('GCC_NO_COMMON_BLOCKS', VarPbx('YES')),
       MapEntryPbx('GCC_OPTIMIZATION_LEVEL', VarPbx('0')),
@@ -144,11 +149,11 @@ MapPbx createXCConfigurationSecondDebug(BuildType type, String flavor, String uu
       MapEntryPbx('GCC_WARN_UNINITIALIZED_AUTOS', VarPbx('YES_AGGRESSIVE')),
       MapEntryPbx('GCC_WARN_UNUSED_FUNCTION', VarPbx('YES')),
       MapEntryPbx('GCC_WARN_UNUSED_VARIABLE', VarPbx('YES')),
-      MapEntryPbx('IPHONEOS_DEPLOYMENT_TARGET', VarPbx('13.0')),
+      MapEntryPbx('IPHONEOS_DEPLOYMENT_TARGET', VarPbx(projectSettings.iphoneosDeploymentTarget)),
       MapEntryPbx('MTL_ENABLE_DEBUG_INFO', VarPbx('YES')),
       MapEntryPbx('ONLY_ACTIVE_ARCH', VarPbx('YES')),
       MapEntryPbx('SDKROOT', VarPbx('iphoneos')),
-      MapEntryPbx('TARGETED_DEVICE_FAMILY', VarPbx('"1,2"')),
+      MapEntryPbx('TARGETED_DEVICE_FAMILY', VarPbx(projectSettings.targetedDeviceFamily)),
     ]),
     MapEntryPbx('name', VarPbx('"$type-$flavor"')),
   ]);

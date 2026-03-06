@@ -5,6 +5,7 @@ import 'package:flavor_tools/src/create_flavor/ios/check_runner_entitlements.dar
 import 'package:flavor_tools/src/create_flavor/ios/update_infoplist.dart';
 import 'package:flavor_tools/src/create_flavor/models/create_xc_configuration.dart';
 import 'package:flavor_tools/src/create_flavor/models/create_xc_scheme.dart';
+import 'package:flavor_tools/src/create_flavor/models/existing_project_settings.dart';
 import 'package:xcode_parser/xcode_parser.dart';
 
 createXcFlavor(FlavorConfig config) async {
@@ -16,6 +17,10 @@ createXcFlavor(FlavorConfig config) async {
   await updateInfoPlist(config.plistPath, displayName);
 
   var project = await Pbxproj.open(config.xcPath);
+  final projectSettings = ExistingProjectSettings.fromProject(project);
+  print('Using project settings: SWIFT_VERSION=${projectSettings.swiftVersion}, '
+      'IPHONEOS_DEPLOYMENT_TARGET=${projectSettings.iphoneosDeploymentTarget}, '
+      'TARGETED_DEVICE_FAMILY=${projectSettings.targetedDeviceFamily}');
   final blueprintIdentifierProfile = project.generateUuid();
   final blueprintIdentifierRelease = project.generateUuid();
   final blueprintIdentifierDebug = project.generateUuid();
@@ -67,13 +72,13 @@ createXcFlavor(FlavorConfig config) async {
   addXCConfigurationListNativeTarget(project, BuildType.debug, flavor, uuidDebugBuildConfiguration2);
   addXCConfigurationListNativeTarget(project, BuildType.profile, flavor, uuidProfileBuildConfiguration2);
   //addXCBuildConfiguration
-  addXCBuildConfiguration(project, BuildType.release, uuidReleaseRef, uuidReleaseBuildConfiguration1, config);
-  addXCBuildConfiguration(project, BuildType.debug, uuidDebugRef, uuidDebugBuildConfiguration1, config);
-  addXCBuildConfiguration(project, BuildType.profile, uuidReleaseRef, uuidProfileBuildConfiguration1, config);
+  addXCBuildConfiguration(project, BuildType.release, uuidReleaseRef, uuidReleaseBuildConfiguration1, config, projectSettings);
+  addXCBuildConfiguration(project, BuildType.debug, uuidDebugRef, uuidDebugBuildConfiguration1, config, projectSettings);
+  addXCBuildConfiguration(project, BuildType.profile, uuidReleaseRef, uuidProfileBuildConfiguration1, config, projectSettings);
   //addXCBuildConfigurationSecond
-  addXCBuildConfigurationSecond(project, BuildType.release, flavor, uuidReleaseRef, uuidReleaseBuildConfiguration2);
-  addXCBuildConfigurationSecond(project, BuildType.debug, flavor, uuidDebugRef, uuidDebugBuildConfiguration2);
-  addXCBuildConfigurationSecond(project, BuildType.profile, flavor, uuidReleaseRef, uuidProfileBuildConfiguration2);
+  addXCBuildConfigurationSecond(project, BuildType.release, flavor, uuidReleaseRef, uuidReleaseBuildConfiguration2, projectSettings);
+  addXCBuildConfigurationSecond(project, BuildType.debug, flavor, uuidDebugRef, uuidDebugBuildConfiguration2, projectSettings);
+  addXCBuildConfigurationSecond(project, BuildType.profile, flavor, uuidReleaseRef, uuidProfileBuildConfiguration2, projectSettings);
 
   await project.save();
 }
@@ -181,23 +186,22 @@ Pbxproj addXCConfigurationListNativeTarget(Pbxproj project, BuildType buildType,
   return project;
 }
 
-Pbxproj addXCBuildConfiguration(
-    Pbxproj project, BuildType buildType, String uuidRef, String uuidConfiguration, FlavorConfig config) {
-  //XCBuildConfiguration section
+Pbxproj addXCBuildConfiguration(Pbxproj project, BuildType buildType, String uuidRef, String uuidConfiguration,
+    FlavorConfig config, ExistingProjectSettings projectSettings) {
   final map = project.find<MapPbx>('objects');
   final section = map?.find<SectionPbx>('XCBuildConfiguration');
-  final insertValue = createXCConfigurationFirst(buildType, uuidRef, uuidConfiguration, config.iosTeamId, config);
+  final insertValue =
+      createXCConfigurationFirst(buildType, uuidRef, uuidConfiguration, config.iosTeamId, config, projectSettings);
   section?.add(insertValue);
   if (section == null) CreateFlavorExit.notFound();
   return project;
 }
 
 Pbxproj addXCBuildConfigurationSecond(
-    Pbxproj project, BuildType buildType, String flavor, String uuidRef, String uuid) {
-  //XCBuildConfiguration section
+    Pbxproj project, BuildType buildType, String flavor, String uuidRef, String uuid, ExistingProjectSettings projectSettings) {
   final map = project.find<MapPbx>('objects');
   final section = map?.find<SectionPbx>('XCBuildConfiguration');
-  final insertValue = createXCConfigurationSecond(buildType, flavor, uuidRef, uuid);
+  final insertValue = createXCConfigurationSecond(buildType, flavor, uuidRef, uuid, projectSettings);
   section?.add(insertValue);
   if (section == null) CreateFlavorExit.notFound();
   return project;
