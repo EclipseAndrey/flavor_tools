@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:args/command_runner.dart';
 import 'package:flavor_tools/flavor_tools.dart';
 import 'package:flavor_tools/src/set_target_device_family/set_target_device_family.dart';
+import 'package:flavor_tools/src/update_flavor/update_flavor.dart' show updateFlavor, readExistingFlavorValues;
 import 'package:yaml/yaml.dart';
 
 Future<void> runnerArgs(List<String> arguments) async {
@@ -137,6 +138,30 @@ class CreateAllCommand extends Command {
         continue;
       }
 
+      // Check if flavor already exists and needs updating
+      final existing = await readExistingFlavorValues(flavorName);
+      if (existing.exists) {
+        final needsIosPackage = packageNameIos != existing.iosPackageName ? packageNameIos : null;
+        final needsIosDisplay = displayName != existing.iosDisplayName ? displayName : null;
+        final needsAndroidPackage = packageNameAndroid != existing.androidPackageName ? packageNameAndroid : null;
+        final needsAndroidDisplay = displayName != existing.androidDisplayName ? displayName : null;
+
+        if (needsIosPackage != null || needsIosDisplay != null || needsAndroidPackage != null || needsAndroidDisplay != null) {
+          print('--- Updating flavor: $flavorName ---');
+          await updateFlavor(
+            flavorName: flavorName,
+            packageNameIos: needsIosPackage,
+            packageNameAndroid: needsAndroidPackage,
+            displayNameIos: needsIosDisplay,
+            displayNameAndroid: needsAndroidDisplay,
+          );
+        } else {
+          print('--- Flavor "$flavorName" is up to date ---');
+        }
+        print('');
+        continue;
+      }
+
       print('--- Creating flavor: $flavorName ---');
       final config = FlavorConfig(
         xcPath: pathXcProject ?? 'ios/Runner.xcodeproj/project.pbxproj',
@@ -165,29 +190,37 @@ class UpdateCommand extends Command {
 
   UpdateCommand() {
     argParser
-      ..addOption('flavorName', help: 'Flavor name of the application.', mandatory: true)
+      ..addOption('flavorName', abbr: 'f', help: 'Flavor name of the application.', mandatory: true)
+      ..addOption('packageName', abbr: 'p', help: 'New package name for both iOS and Android.')
       ..addOption('packageNameIos', help: 'New package name specific to iOS.')
       ..addOption('packageNameAndroid', help: 'New package name specific to Android.')
+      ..addOption('displayName', abbr: 'd', help: 'New display name for both iOS and Android.')
       ..addOption('displayNameIos', help: 'New display name specific to iOS.')
-      ..addOption('displayNameAndroid', help: 'New display name specific to Android.')
-      ..addOption('newFlavorName', help: 'New flavor name of the application.');
+      ..addOption('displayNameAndroid', help: 'New display name specific to Android.');
   }
 
   @override
-  void run() {
-    var flavorName = argResults?['flavorName'];
-    var packageNameIos = argResults?['packageNameIos'];
-    var packageNameAndroid = argResults?['packageNameAndroid'];
-    var displayNameIos = argResults?['displayNameIos'];
-    var displayNameAndroid = argResults?['displayNameAndroid'];
-    var newFlavorName = argResults?['newFlavorName'];
+  Future<void> run() async {
+    final flavorName = argResults!['flavorName'] as String;
+    final packageName = argResults?['packageName'] as String?;
+    final packageNameIos = argResults?['packageNameIos'] as String? ?? packageName;
+    final packageNameAndroid = argResults?['packageNameAndroid'] as String? ?? packageName;
+    final displayName = argResults?['displayName'] as String?;
+    final displayNameIos = argResults?['displayNameIos'] as String? ?? displayName;
+    final displayNameAndroid = argResults?['displayNameAndroid'] as String? ?? displayName;
 
-    print('Updating flavor "$flavorName" with the following details:');
-    if (packageNameIos != null) print('New Package Name iOS: $packageNameIos');
-    if (packageNameAndroid != null) print('New Package Name Android: $packageNameAndroid');
-    if (displayNameIos != null) print('New Display Name iOS: $displayNameIos');
-    if (displayNameAndroid != null) print('New Display Name Android: $displayNameAndroid');
-    if (newFlavorName != null) print('New Flavor Name: $newFlavorName');
+    if ([packageNameIos, packageNameAndroid, displayNameIos, displayNameAndroid].every((e) => e == null)) {
+      print('Nothing to update. Provide at least one of: --packageName, --displayName, etc.\n$usage');
+      exit(1);
+    }
+
+    await updateFlavor(
+      flavorName: flavorName,
+      packageNameIos: packageNameIos,
+      packageNameAndroid: packageNameAndroid,
+      displayNameIos: displayNameIos,
+      displayNameAndroid: displayNameAndroid,
+    );
   }
 }
 
