@@ -30,7 +30,6 @@ createXcFlavor(FlavorConfig config) async {
 
   final uuidReleaseRef = project.generateUuid();
   final uuidDebugRef = project.generateUuid();
-  final uuidProfileRef = project.generateUuid();
 
   final uuidReleaseBuildConfiguration1 = project.generateUuid();
   final uuidDebugBuildConfiguration1 = project.generateUuid();
@@ -56,7 +55,6 @@ createXcFlavor(FlavorConfig config) async {
   //addPBXFileReference
   addPBXFileReference(project, BuildType.release, flavor, uuidReleaseRef);
   addPBXFileReference(project, BuildType.debug, flavor, uuidDebugRef);
-  addPBXFileReference(project, BuildType.profile, flavor, uuidProfileRef);
   //addPBXGroup
   addPBXGroup(project, BuildType.release, flavor, uuidReleaseRef);
   addPBXGroup(project, BuildType.debug, flavor, uuidDebugRef);
