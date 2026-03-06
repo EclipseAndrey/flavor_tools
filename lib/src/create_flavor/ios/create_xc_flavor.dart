@@ -186,7 +186,7 @@ Pbxproj addXCBuildConfiguration(
   //XCBuildConfiguration section
   final map = project.find<MapPbx>('objects');
   final section = map?.find<SectionPbx>('XCBuildConfiguration');
-  final insertValue = createXCConfigurationFirstDebug(buildType, uuidRef, uuidConfiguration, config);
+  final insertValue = createXCConfigurationFirst(buildType, uuidRef, uuidConfiguration, config.iosTeamId, config);
   section?.add(insertValue);
   if (section == null) CreateFlavorExit.notFound();
   return project;

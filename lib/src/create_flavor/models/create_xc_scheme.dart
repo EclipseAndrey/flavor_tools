@@ -21,7 +21,7 @@ Future<void> createXcodeScheme({
 
   final StringBuffer content = StringBuffer();
   content.writeln('<?xml version="1.0" encoding="UTF-8"?>');
-  content.writeln('<Scheme LastUpgradeVersion = "1340" version = "1.3">');
+  content.writeln('<Scheme LastUpgradeVersion = "1600" version = "1.3">');
   content.writeln('  <BuildAction parallelizeBuildables = "YES" buildImplicitDependencies = "YES">');
   content.writeln('    <BuildActionEntries>');
   content.writeln(
