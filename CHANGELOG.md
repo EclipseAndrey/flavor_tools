@@ -1,3 +1,14 @@
+## 2.0.3
+
+- Added validation for Gradle file existence before Android flavor creation
+- Added validation for invalid YAML flavor entries in `create-all` command
+
+## 2.0.2
+
+- Fixed dart analyze warnings
+- Updated dependencies
+- Updated README.md documentation
+
 ## 2.0.0
 
 ### New features

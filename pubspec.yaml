@@ -1,6 +1,6 @@
 name: flavor_tools
-description: Easily create and manage application flavors
-version: 2.0.2
+description: CLI tool for creating and managing Flutter flavors. Configures iOS (Xcode, xcconfig, schemes) and Android (Gradle) automatically.
+version: 2.0.3
 repository: https://github.com/EclipseAndrey/flavor_tools
 
 environment:

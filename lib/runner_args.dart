@@ -125,6 +125,10 @@ class CreateAllCommand extends Command {
 
     for (final entry in flavors.entries) {
       final flavorName = entry.key as String;
+      if (entry.value is! YamlMap) {
+        print('Skipping "$flavorName": invalid format, expected a map of properties.');
+        continue;
+      }
       final props = entry.value as YamlMap;
 
       final packageName = props['package_name'] as String?;

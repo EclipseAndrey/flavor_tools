@@ -12,6 +12,10 @@ Future<void> createAndroidFlavor(FlavorConfig config) async {
   final androidPackage = config.androidPackageName;
 
   final file = File(gradlePath);
+  if (!await file.exists()) {
+    print('Error: Gradle file not found at $gradlePath');
+    exit(1);
+  }
   var content = await file.readAsString();
 
   final isKotlinDsl = config.isKotlinDsl;
