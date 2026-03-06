@@ -8,7 +8,7 @@ import 'package:flavor_tools/src/create_flavor/models/create_xc_scheme.dart';
 import 'package:flavor_tools/src/create_flavor/models/existing_project_settings.dart';
 import 'package:xcode_parser/xcode_parser.dart';
 
-createXcFlavor(FlavorConfig config) async {
+Future<void> createXcFlavor(FlavorConfig config) async {
   final String flavor = config.flavorName;
   final String package = config.iosPackageName;
   final String displayName = config.displayName;
@@ -143,7 +143,9 @@ Pbxproj addPBXResourcesBuildPhase(Pbxproj project, BuildType buildType, String f
   final arrayFiles = elementResources?.find<ListPbx>('files');
   final insertValue = ElementOfListPbx(uuidFile, comment: '$buildType-$flavor.xcconfig in Resources');
   arrayFiles?.add(insertValue);
-  if (arrayFiles == null) CreateFlavorExit.notFound(message: 'PBXResourcesBuildPhase "Resources" section not found in project.');
+  if (arrayFiles == null) {
+    CreateFlavorExit.notFound(message: 'PBXResourcesBuildPhase "Resources" section not found in project.');
+  }
   return project;
 }
 
@@ -155,7 +157,9 @@ Pbxproj addXCConfigurationList(Pbxproj project, BuildType buildType, String flav
   final arrayBuildConfigurations = elementBuildConfigurationList?.find<ListPbx>('buildConfigurations');
   final insertValue = ElementOfListPbx(uuid, comment: '$buildType-$flavor');
   arrayBuildConfigurations?.add(insertValue);
-  if (arrayBuildConfigurations == null) CreateFlavorExit.notFound(message: 'XCConfigurationList for PBXProject "Runner" not found.');
+  if (arrayBuildConfigurations == null) {
+    CreateFlavorExit.notFound(message: 'XCConfigurationList for PBXProject "Runner" not found.');
+  }
   return project;
 }
 
@@ -167,7 +171,9 @@ Pbxproj addXCConfigurationListNativeTarget(Pbxproj project, BuildType buildType,
   final arrayBuildConfigurations = elementBuildConfigurationList?.find<ListPbx>('buildConfigurations');
   final insertValue = ElementOfListPbx(uuid, comment: '$buildType-$flavor');
   arrayBuildConfigurations?.add(insertValue);
-  if (arrayBuildConfigurations == null) CreateFlavorExit.notFound(message: 'XCConfigurationList for PBXNativeTarget "Runner" not found.');
+  if (arrayBuildConfigurations == null) {
+    CreateFlavorExit.notFound(message: 'XCConfigurationList for PBXNativeTarget "Runner" not found.');
+  }
   return project;
 }
 
@@ -182,8 +188,8 @@ Pbxproj addXCBuildConfiguration(Pbxproj project, BuildType buildType, String uui
   return project;
 }
 
-Pbxproj addXCBuildConfigurationSecond(
-    Pbxproj project, BuildType buildType, String flavor, String uuidRef, String uuid, ExistingProjectSettings projectSettings) {
+Pbxproj addXCBuildConfigurationSecond(Pbxproj project, BuildType buildType, String flavor, String uuidRef, String uuid,
+    ExistingProjectSettings projectSettings) {
   final map = project.find<MapPbx>('objects');
   final section = map?.find<SectionPbx>('XCBuildConfiguration');
   final insertValue = createXCConfigurationSecond(buildType, flavor, uuidRef, uuid, projectSettings);
