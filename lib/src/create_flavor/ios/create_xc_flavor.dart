@@ -39,9 +39,7 @@ createXcFlavor(FlavorConfig config) async {
   await createXcConfig(BuildType.debug, flavor, package, displayName);
 
   await createXcodeScheme(
-    blueprintIdentifierDebug: uuid(),
-    blueprintIdentifierProfile: uuid(),
-    blueprintIdentifierRelease: uuid(),
+    project: project,
     flavor: flavor,
   );
 

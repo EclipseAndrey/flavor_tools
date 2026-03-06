@@ -1,11 +1,24 @@
 import 'dart:io';
 
 import 'package:flavor_tools/flavor_tools.dart';
+import 'package:xml/xml.dart';
+import 'package:xcode_parser/xcode_parser.dart';
+
+String _findRunnerTargetUuid(Pbxproj project) {
+  final map = project.find<MapPbx>('objects');
+  final section = map?.find<SectionPbx>('PBXNativeTarget');
+  if (section != null) {
+    for (final child in section.childrenList) {
+      if (child is MapPbx && child.comment == 'Runner') {
+        return child.uuid;
+      }
+    }
+  }
+  return '97C146ED1CF9000F007C117D';
+}
 
 Future<void> createXcodeScheme({
-  required String blueprintIdentifierProfile,
-  required String blueprintIdentifierDebug,
-  required String blueprintIdentifierRelease,
+  required Pbxproj project,
   required String flavor,
 }) async {
   final String filePath = 'ios/Runner.xcodeproj/xcshareddata/xcschemes/$flavor.xcscheme';
@@ -14,51 +27,115 @@ Future<void> createXcodeScheme({
   if (!await directory.exists()) {
     await directory.create(recursive: true);
   }
-  final File file = File(filePath);
-  if (!await file.exists()) {
-    await file.create();
+
+  final runnerUuid = _findRunnerTargetUuid(project);
+
+  XmlElement buildableReference() {
+    return XmlElement(XmlName('BuildableReference'), [
+      XmlAttribute(XmlName('BuildableIdentifier'), 'primary'),
+      XmlAttribute(XmlName('BlueprintIdentifier'), runnerUuid),
+      XmlAttribute(XmlName('BuildableName'), 'Runner.app'),
+      XmlAttribute(XmlName('BlueprintName'), 'Runner'),
+      XmlAttribute(XmlName('ReferencedContainer'), 'container:Runner.xcodeproj'),
+    ]);
   }
 
-  final StringBuffer content = StringBuffer();
-  content.writeln('<?xml version="1.0" encoding="UTF-8"?>');
-  content.writeln('<Scheme LastUpgradeVersion = "1600" version = "1.3">');
-  content.writeln('  <BuildAction parallelizeBuildables = "YES" buildImplicitDependencies = "YES">');
-  content.writeln('    <BuildActionEntries>');
-  content.writeln(
-      '      <BuildActionEntry buildForTesting = "YES" buildForRunning = "YES" buildForProfiling = "YES" buildForArchiving = "YES" buildForAnalyzing = "YES">');
-  content.writeln(
-      '        <BuildableReference BuildableIdentifier = "primary" BlueprintIdentifier = "$blueprintIdentifierDebug" BuildableName = "Runner.app" BlueprintName = "Runner" ReferencedContainer = "container:Runner.xcodeproj"/>');
-  content.writeln('      </BuildActionEntry>');
-  content.writeln('    </BuildActionEntries>');
-  content.writeln('  </BuildAction>');
-  content.writeln(
-      '  <TestAction buildConfiguration = "${BuildType.debug}-$flavor" selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB" selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB" shouldUseLaunchSchemeArgsEnv = "YES">');
-  content.writeln('    <Testables></Testables>');
-  content.writeln('  </TestAction>');
-  content.writeln(
-      '  <LaunchAction buildConfiguration = "${BuildType.debug}-$flavor" selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB" selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB" launchStyle = "0" useCustomWorkingDirectory = "NO" ignoresPersistentStateOnLaunch = "NO" debugDocumentVersioning = "YES" debugServiceExtension = "internal" allowLocationSimulation = "YES">');
-  content.writeln('    <BuildableProductRunnable runnableDebuggingMode = "0">');
-  content.writeln(
-      '      <BuildableReference BuildableIdentifier = "primary" BlueprintIdentifier = "$blueprintIdentifierDebug" BuildableName = "Runner.app" BlueprintName = "Runner" ReferencedContainer = "container:Runner.xcodeproj"/>');
-  content.writeln('    </BuildableProductRunnable>');
-  content.writeln('    <CommandLineArguments>');
-  content.writeln('      <CommandLineArgument argument = "--dart-define=FLAVOR=$flavor" isEnabled = "YES"/>');
-  content.writeln('      <CommandLineArgument argument = "--flavor=$flavor" isEnabled = "YES"/>');
-  content.writeln('    </CommandLineArguments>');
-  content.writeln('  </LaunchAction>');
-  content.writeln(
-      '  <ProfileAction buildConfiguration = "${BuildType.profile}-$flavor" shouldUseLaunchSchemeArgsEnv = "YES" savedToolIdentifier = "" useCustomWorkingDirectory = "NO" debugDocumentVersioning = "YES">');
-  content.writeln('    <BuildableProductRunnable runnableDebuggingMode = "0">');
-  content.writeln(
-      '      <BuildableReference BuildableIdentifier = "primary" BlueprintIdentifier = "$blueprintIdentifierProfile" BuildableName = "Runner.app" BlueprintName = "Runner" ReferencedContainer = "container:Runner.xcodeproj"/>');
-  content.writeln('    </BuildableProductRunnable>');
-  content.writeln('  </ProfileAction>');
-  content.writeln('  <AnalyzeAction buildConfiguration = "${BuildType.debug}-$flavor"></AnalyzeAction>');
-  content.writeln(
-      '  <ArchiveAction buildConfiguration = "${BuildType.release}-$flavor" revealArchiveInOrganizer = "YES">');
-  content.writeln('  </ArchiveAction>');
-  content.writeln('</Scheme>');
+  final debugConfig = '${BuildType.debug}-$flavor';
+  final profileConfig = '${BuildType.profile}-$flavor';
+  final releaseConfig = '${BuildType.release}-$flavor';
+  const lldbInitFile = r'$(SRCROOT)/Flutter/ephemeral/flutter_lldbinit';
 
-  await file.writeAsString(content.toString());
+  final scheme = XmlElement(XmlName('Scheme'), [
+    XmlAttribute(XmlName('LastUpgradeVersion'), '1600'),
+    XmlAttribute(XmlName('version'), '1.7'),
+  ], [
+    // BuildAction
+    XmlElement(XmlName('BuildAction'), [
+      XmlAttribute(XmlName('parallelizeBuildables'), 'YES'),
+      XmlAttribute(XmlName('buildImplicitDependencies'), 'YES'),
+    ], [
+      XmlElement(XmlName('BuildActionEntries'), [], [
+        XmlElement(XmlName('BuildActionEntry'), [
+          XmlAttribute(XmlName('buildForTesting'), 'YES'),
+          XmlAttribute(XmlName('buildForRunning'), 'YES'),
+          XmlAttribute(XmlName('buildForProfiling'), 'YES'),
+          XmlAttribute(XmlName('buildForArchiving'), 'YES'),
+          XmlAttribute(XmlName('buildForAnalyzing'), 'YES'),
+        ], [
+          buildableReference(),
+        ]),
+      ]),
+    ]),
+    // TestAction
+    XmlElement(XmlName('TestAction'), [
+      XmlAttribute(XmlName('buildConfiguration'), debugConfig),
+      XmlAttribute(XmlName('selectedDebuggerIdentifier'), 'Xcode.DebuggerFoundation.Debugger.LLDB'),
+      XmlAttribute(XmlName('selectedLauncherIdentifier'), 'Xcode.DebuggerFoundation.Launcher.LLDB'),
+      XmlAttribute(XmlName('customLLDBInitFile'), lldbInitFile),
+      XmlAttribute(XmlName('shouldUseLaunchSchemeArgsEnv'), 'YES'),
+    ], [
+      XmlElement(XmlName('Testables')),
+    ]),
+    // LaunchAction
+    XmlElement(XmlName('LaunchAction'), [
+      XmlAttribute(XmlName('buildConfiguration'), debugConfig),
+      XmlAttribute(XmlName('selectedDebuggerIdentifier'), 'Xcode.DebuggerFoundation.Debugger.LLDB'),
+      XmlAttribute(XmlName('selectedLauncherIdentifier'), 'Xcode.DebuggerFoundation.Launcher.LLDB'),
+      XmlAttribute(XmlName('customLLDBInitFile'), lldbInitFile),
+      XmlAttribute(XmlName('launchStyle'), '0'),
+      XmlAttribute(XmlName('useCustomWorkingDirectory'), 'NO'),
+      XmlAttribute(XmlName('ignoresPersistentStateOnLaunch'), 'NO'),
+      XmlAttribute(XmlName('debugDocumentVersioning'), 'YES'),
+      XmlAttribute(XmlName('debugServiceExtension'), 'internal'),
+      XmlAttribute(XmlName('allowLocationSimulation'), 'YES'),
+    ], [
+      XmlElement(XmlName('BuildableProductRunnable'), [
+        XmlAttribute(XmlName('runnableDebuggingMode'), '0'),
+      ], [
+        buildableReference(),
+      ]),
+      XmlElement(XmlName('CommandLineArguments'), [], [
+        XmlElement(XmlName('CommandLineArgument'), [
+          XmlAttribute(XmlName('argument'), '--dart-define=FLAVOR=$flavor'),
+          XmlAttribute(XmlName('isEnabled'), 'YES'),
+        ]),
+        XmlElement(XmlName('CommandLineArgument'), [
+          XmlAttribute(XmlName('argument'), '--flavor=$flavor'),
+          XmlAttribute(XmlName('isEnabled'), 'YES'),
+        ]),
+      ]),
+    ]),
+    // ProfileAction
+    XmlElement(XmlName('ProfileAction'), [
+      XmlAttribute(XmlName('buildConfiguration'), profileConfig),
+      XmlAttribute(XmlName('shouldUseLaunchSchemeArgsEnv'), 'YES'),
+      XmlAttribute(XmlName('savedToolIdentifier'), ''),
+      XmlAttribute(XmlName('useCustomWorkingDirectory'), 'NO'),
+      XmlAttribute(XmlName('debugDocumentVersioning'), 'YES'),
+    ], [
+      XmlElement(XmlName('BuildableProductRunnable'), [
+        XmlAttribute(XmlName('runnableDebuggingMode'), '0'),
+      ], [
+        buildableReference(),
+      ]),
+    ]),
+    // AnalyzeAction
+    XmlElement(XmlName('AnalyzeAction'), [
+      XmlAttribute(XmlName('buildConfiguration'), debugConfig),
+    ]),
+    // ArchiveAction
+    XmlElement(XmlName('ArchiveAction'), [
+      XmlAttribute(XmlName('buildConfiguration'), releaseConfig),
+      XmlAttribute(XmlName('revealArchiveInOrganizer'), 'YES'),
+    ]),
+  ]);
+
+  final document = XmlDocument([
+    XmlProcessing('xml', 'version="1.0" encoding="UTF-8"'),
+    scheme,
+  ]);
+
+  final file = File(filePath);
+  await file.writeAsString(document.toXmlString(pretty: true, indent: '   '));
   print('Created scheme file at $filePath');
 }
