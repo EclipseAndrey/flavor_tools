@@ -12,42 +12,42 @@
 
 # Flavor Tools
 
-CLI-утилита для быстрого создания и управления flavors в Flutter-проектах. Автоматически настраивает iOS (Xcode project, xcconfig, schemes) и Android (Gradle, AndroidManifest).
+A CLI utility for quickly creating and managing flavors in Flutter projects. Automatically configures iOS (Xcode project, xcconfig, schemes) and Android (Gradle, AndroidManifest).
 
-## Возможности
+## Features
 
-- Создание flavor для iOS и Android одной командой
-- Пакетное создание из YAML-конфига (`create-all`)
-- Обновление существующих flavors (`update`)
-- Настройка target device family для iOS
-- Поддержка Kotlin DSL (`build.gradle.kts`) и Groovy (`build.gradle`)
-- Автоопределение настроек из существующего Xcode-проекта (SWIFT_VERSION, IPHONEOS_DEPLOYMENT_TARGET и др.)
-- Проверка дубликатов перед созданием
-- Поддержка `flutter_launcher_icons`
+- Create a flavor for iOS and Android with a single command
+- Batch creation from a YAML config (`create-all`)
+- Update existing flavors (`update`)
+- Configure target device family for iOS
+- Support for Kotlin DSL (`build.gradle.kts`) and Groovy (`build.gradle`)
+- Auto-detection of settings from an existing Xcode project (SWIFT_VERSION, IPHONEOS_DEPLOYMENT_TARGET, etc.)
+- Duplicate checking before creation
+- `flutter_launcher_icons` support
 
-## Установка
+## Installation
 
 ```yaml
 dependencies:
   flavor_tools: ^2.0.1
 ```
 
-или
+or
 
 ```shell
 dart pub add flavor_tools
 ```
 
-### Глобальная установка (опционально)
+### Global installation (optional)
 
 ```shell
 dart compile exe bin/flavor_tools.dart -o flavor_tools
 mv flavor_tools /usr/local/bin/
 ```
 
-## Команды
+## Commands
 
-### `create` — создание одного flavor
+### `create` — create a single flavor
 
 ```shell
 dart run flavor_tools create \
@@ -56,24 +56,24 @@ dart run flavor_tools create \
   -d "My App Dev"
 ```
 
-| Флаг | Сокращение | Описание |
-|------|-----------|----------|
-| `--packageName` | `-p` | Package name для iOS и Android |
-| `--packageNameIos` | `-i` | Package name только для iOS |
-| `--packageNameAndroid` | `-a` | Package name только для Android |
-| `--flavorName` | `-f` | Имя flavor |
-| `--displayName` | `-d` | Отображаемое имя приложения |
-| `--teamId` | `-t` | Apple Team ID (по умолчанию: пустой) |
-| `--pathXcProject` | `-x` | Путь к project.pbxproj |
-| `--iconsLauncher` | | `true` если используете `flutter_launcher_icons` |
+| Flag | Short | Description |
+|------|-------|-------------|
+| `--packageName` | `-p` | Package name for iOS and Android |
+| `--packageNameIos` | `-i` | Package name for iOS only |
+| `--packageNameAndroid` | `-a` | Package name for Android only |
+| `--flavorName` | `-f` | Flavor name |
+| `--displayName` | `-d` | Display name of the application |
+| `--teamId` | `-t` | Apple Team ID (default: empty) |
+| `--pathXcProject` | `-x` | Path to project.pbxproj |
+| `--iconsLauncher` | | `true` if using `flutter_launcher_icons` |
 
-### `create-all` — пакетное создание из YAML
+### `create-all` — batch creation from YAML
 
 ```shell
 dart run flavor_tools create-all -c flavor_tools.yaml
 ```
 
-Формат `flavor_tools.yaml`:
+`flavor_tools.yaml` format:
 
 ```yaml
 flavors:
@@ -90,21 +90,21 @@ flavors:
     icons_launcher: true
 ```
 
-Каждый flavor поддерживает поля:
+Each flavor supports the following fields:
 
-| Поле | Описание |
-|------|----------|
-| `package_name` | Общий package name |
-| `package_name_ios` | Package name только для iOS |
-| `package_name_android` | Package name только для Android |
-| `display_name` | Отображаемое имя |
-| `dimension` | Flavor dimension (по умолчанию: `default`) |
+| Field | Description |
+|-------|-------------|
+| `package_name` | Shared package name |
+| `package_name_ios` | Package name for iOS only |
+| `package_name_android` | Package name for Android only |
+| `display_name` | Display name |
+| `dimension` | Flavor dimension (default: `default`) |
 | `team_id` | Apple Team ID |
-| `icons_launcher` | Поддержка flutter_launcher_icons |
+| `icons_launcher` | flutter_launcher_icons support |
 
-При повторном запуске `create-all` автоматически определяет изменения и обновляет только те flavors, у которых поменялся конфиг.
+When running `create-all` again, it automatically detects changes and updates only those flavors whose config has changed.
 
-### `update` — обновление существующего flavor
+### `update` — update an existing flavor
 
 ```shell
 dart run flavor_tools update \
@@ -113,17 +113,17 @@ dart run flavor_tools update \
   -d "New Display Name"
 ```
 
-| Флаг | Описание |
-|------|----------|
-| `--flavorName` `-f` | Имя flavor (обязательный) |
-| `--packageName` `-p` | Новый package name для iOS и Android |
-| `--packageNameIos` | Новый package name только для iOS |
-| `--packageNameAndroid` | Новый package name только для Android |
-| `--displayName` `-d` | Новое отображаемое имя для iOS и Android |
-| `--displayNameIos` | Новое имя только для iOS |
-| `--displayNameAndroid` | Новое имя только для Android |
+| Flag | Description |
+|------|-------------|
+| `--flavorName` `-f` | Flavor name (required) |
+| `--packageName` `-p` | New package name for iOS and Android |
+| `--packageNameIos` | New package name for iOS only |
+| `--packageNameAndroid` | New package name for Android only |
+| `--displayName` `-d` | New display name for iOS and Android |
+| `--displayNameIos` | New display name for iOS only |
+| `--displayNameAndroid` | New display name for Android only |
 
-### `set-target-device-family` — целевые устройства iOS
+### `set-target-device-family` — target iOS devices
 
 ```shell
 dart run flavor_tools set-target-device-family -d "1,2"
@@ -131,23 +131,23 @@ dart run flavor_tools set-target-device-family -d "1,2"
 
 - `1` — iPhone
 - `2` — iPad
-- `1,2` — iPhone и iPad
+- `1,2` — iPhone and iPad
 
-## Запуск flavor
+## Running a flavor
 
 ```shell
 flutter run --flavor=dev
 ```
 
-## Что генерируется
+## What gets generated
 
 **iOS:**
-- `XCBuildConfiguration` для Debug, Release, Profile
-- xcconfig-файлы (`ios/Flutter/Debug-{flavor}.xcconfig`, `Release-{flavor}.xcconfig`)
+- `XCBuildConfiguration` for Debug, Release, Profile
+- xcconfig files (`ios/Flutter/Debug-{flavor}.xcconfig`, `Release-{flavor}.xcconfig`)
 - Xcode scheme (`ios/Runner.xcodeproj/xcshareddata/xcschemes/{flavor}.xcscheme`)
-- Обновление `Info.plist` и `Runner.entitlements`
+- `Info.plist` and `Runner.entitlements` updates
 
 **Android:**
-- `flavorDimensions` и `productFlavors` в `build.gradle` / `build.gradle.kts`
-- `resValue` для `app_name` в каждом flavor
-- Обновление `AndroidManifest.xml`
+- `flavorDimensions` and `productFlavors` in `build.gradle` / `build.gradle.kts`
+- `resValue` for `app_name` in each flavor
+- `AndroidManifest.xml` updates
