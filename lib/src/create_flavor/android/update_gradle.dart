@@ -28,9 +28,21 @@ String addFlavorDimension(String content, String dimension, {required bool isKot
   throw Exception('The android section not found in the build.gradle file.');
 }
 
+bool flavorExistsInGradle(String content, String flavorName, {required bool isKotlinDsl}) {
+  if (isKotlinDsl) {
+    return RegExp('create\\s*\\(\\s*"$flavorName"\\s*\\)').hasMatch(content);
+  }
+  return RegExp('\\b$flavorName\\s*\\{').hasMatch(content);
+}
+
 String addOrUpdateProductFlavors(
     String content, String flavorName, String dimension, String displayName, String androidPackage,
     {required bool isKotlinDsl}) {
+  if (flavorExistsInGradle(content, flavorName, isKotlinDsl: isKotlinDsl)) {
+    print('Android flavor "$flavorName" already exists, skipping.');
+    return content;
+  }
+
   final productFlavorsRegex = RegExp(r'productFlavors\s*\{');
 
   if (isKotlinDsl) {

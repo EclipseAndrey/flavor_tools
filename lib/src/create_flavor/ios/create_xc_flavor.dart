@@ -17,6 +17,12 @@ createXcFlavor(FlavorConfig config) async {
   await updateInfoPlist(config.plistPath, displayName);
 
   var project = await Pbxproj.open(config.xcPath);
+
+  if (_flavorExistsInProject(project, flavor)) {
+    print('iOS flavor "$flavor" already exists, skipping.');
+    return;
+  }
+
   final projectSettings = ExistingProjectSettings.fromProject(project);
   print('Using project settings: SWIFT_VERSION=${projectSettings.swiftVersion}, '
       'IPHONEOS_DEPLOYMENT_TARGET=${projectSettings.iphoneosDeploymentTarget}, '
@@ -184,4 +190,18 @@ Pbxproj addXCBuildConfigurationSecond(
   section?.add(insertValue);
   if (section == null) CreateFlavorExit.notFound();
   return project;
+}
+
+bool _flavorExistsInProject(Pbxproj project, String flavor) {
+  final map = project.find<MapPbx>('objects');
+  final section = map?.find<SectionPbx>('XCConfigurationList');
+  final configList = section?.findComment<MapPbx>('Build configuration list for PBXProject "Runner"');
+  final buildConfigurations = configList?.find<ListPbx>('buildConfigurations');
+  if (buildConfigurations == null) return false;
+  for (int i = 0; i < buildConfigurations.length; i++) {
+    if (buildConfigurations[i].comment?.contains('Debug-$flavor') ?? false) {
+      return true;
+    }
+  }
+  return false;
 }
