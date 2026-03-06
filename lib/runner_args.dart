@@ -3,11 +3,13 @@ import 'dart:io';
 
 import 'package:args/command_runner.dart';
 import 'package:flavor_tools/flavor_tools.dart';
+import 'package:flavor_tools/src/set_target_device_family/set_target_device_family.dart';
 
 Future<void> runnerArgs(List<String> arguments) async {
   var runner = CommandRunner('flavor_tools', 'A tool for managing application flavors')
     ..addCommand(CreateCommand())
-    ..addCommand(UpdateCommand());
+    ..addCommand(UpdateCommand())
+    ..addCommand(SetTargetDeviceFamilyCommand());
 
   await runner.run(arguments).catchError((error) {
     print(error);
@@ -111,5 +113,32 @@ class UpdateCommand extends Command {
     if (displayNameIos != null) print('New Display Name iOS: $displayNameIos');
     if (displayNameAndroid != null) print('New Display Name Android: $displayNameAndroid');
     if (newFlavorName != null) print('New Flavor Name: $newFlavorName');
+  }
+}
+
+class SetTargetDeviceFamilyCommand extends Command {
+  @override
+  final name = 'set-target-device-family';
+  @override
+  final description = 'Set target device family for iOS (1 - iPhone, 2 - iPad)';
+
+  SetTargetDeviceFamilyCommand() {
+    argParser.addOption(
+      'devices',
+      abbr: 'd',
+      help: 'Target device family for iOS (1 - iPhone, 2 - iPad).',
+    );
+  }
+
+  @override
+  void run() {
+    final targetDeviceFamily = argResults?['devices'];
+    if (targetDeviceFamily == null) {
+      print('Error: Missing required option --devices\n$usage');
+      exit(1);
+    }
+
+    print('Target device family: $targetDeviceFamily (${targetDeviceFamily.runtimeType})');
+    setTargetDeviceFamily(targetDeviceFamily);
   }
 }
