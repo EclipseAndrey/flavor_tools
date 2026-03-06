@@ -5,8 +5,8 @@ import 'package:flavor_tools/src/create_flavor/ios/create_xc_flavor.dart';
 
 abstract class CreateFlavorExit {
   static void notFound({String? message}) {
-    print('${message ?? ''} Not found');
-    exit(404);
+    print('Error: ${message ?? 'Required section not found in project.'}');
+    exit(1);
   }
 }
 
