@@ -21,62 +21,45 @@ createXcFlavor(FlavorConfig config) async {
   print('Using project settings: SWIFT_VERSION=${projectSettings.swiftVersion}, '
       'IPHONEOS_DEPLOYMENT_TARGET=${projectSettings.iphoneosDeploymentTarget}, '
       'TARGETED_DEVICE_FAMILY=${projectSettings.targetedDeviceFamily}');
-  final blueprintIdentifierProfile = project.generateUuid();
-  final blueprintIdentifierRelease = project.generateUuid();
-  final blueprintIdentifierDebug = project.generateUuid();
 
-  final uuidReleaseFile = project.generateUuid();
-  final uuidDebugFile = project.generateUuid();
+  String uuid() => project.generateUuid();
 
-  final uuidReleaseRef = project.generateUuid();
-  final uuidDebugRef = project.generateUuid();
+  // UUIDs for xcconfig files (only Debug & Release have their own files)
+  final fileUuid = {BuildType.release: uuid(), BuildType.debug: uuid()};
+  final refUuid = {BuildType.release: uuid(), BuildType.debug: uuid()};
 
-  final uuidReleaseBuildConfiguration1 = project.generateUuid();
-  final uuidDebugBuildConfiguration1 = project.generateUuid();
-  final uuidProfileBuildConfiguration1 = project.generateUuid();
+  // UUIDs for build configurations (all three types)
+  final configUuid1 = {for (var t in BuildType.values) t: uuid()};
+  final configUuid2 = {for (var t in BuildType.values) t: uuid()};
 
-  final uuidReleaseBuildConfiguration2 = project.generateUuid();
-  final uuidDebugBuildConfiguration2 = project.generateUuid();
-  final uuidProfileBuildConfiguration2 = project.generateUuid();
+  // Profile reuses Release xcconfig ref
+  String refFor(BuildType type) => refUuid[type] ?? refUuid[BuildType.release]!;
 
   await createXcConfig(BuildType.release, flavor, package, displayName);
   await createXcConfig(BuildType.debug, flavor, package, displayName);
 
   await createXcodeScheme(
-    blueprintIdentifierDebug: blueprintIdentifierDebug,
-    blueprintIdentifierProfile: blueprintIdentifierProfile,
-    blueprintIdentifierRelease: blueprintIdentifierRelease,
+    blueprintIdentifierDebug: uuid(),
+    blueprintIdentifierProfile: uuid(),
+    blueprintIdentifierRelease: uuid(),
     flavor: flavor,
   );
 
-  //addPBXBuildFile
-  addPBXBuildFile(project, BuildType.release, flavor, uuidReleaseFile, uuidReleaseRef);
-  addPBXBuildFile(project, BuildType.debug, flavor, uuidDebugFile, uuidDebugRef);
-  //addPBXFileReference
-  addPBXFileReference(project, BuildType.release, flavor, uuidReleaseRef);
-  addPBXFileReference(project, BuildType.debug, flavor, uuidDebugRef);
-  //addPBXGroup
-  addPBXGroup(project, BuildType.release, flavor, uuidReleaseRef);
-  addPBXGroup(project, BuildType.debug, flavor, uuidDebugRef);
-  //addPBXResourcesBuildPhase
-  addPBXResourcesBuildPhase(project, BuildType.release, flavor, uuidReleaseFile);
-  addPBXResourcesBuildPhase(project, BuildType.debug, flavor, uuidDebugFile);
-  //addXCConfigurationList
-  addXCConfigurationList(project, BuildType.release, flavor, uuidReleaseBuildConfiguration1);
-  addXCConfigurationList(project, BuildType.debug, flavor, uuidDebugBuildConfiguration1);
-  addXCConfigurationList(project, BuildType.profile, flavor, uuidProfileBuildConfiguration1);
-  //addXCConfigurationListNativeTarget
-  addXCConfigurationListNativeTarget(project, BuildType.release, flavor, uuidReleaseBuildConfiguration2);
-  addXCConfigurationListNativeTarget(project, BuildType.debug, flavor, uuidDebugBuildConfiguration2);
-  addXCConfigurationListNativeTarget(project, BuildType.profile, flavor, uuidProfileBuildConfiguration2);
-  //addXCBuildConfiguration
-  addXCBuildConfiguration(project, BuildType.release, uuidReleaseRef, uuidReleaseBuildConfiguration1, config, projectSettings);
-  addXCBuildConfiguration(project, BuildType.debug, uuidDebugRef, uuidDebugBuildConfiguration1, config, projectSettings);
-  addXCBuildConfiguration(project, BuildType.profile, uuidReleaseRef, uuidProfileBuildConfiguration1, config, projectSettings);
-  //addXCBuildConfigurationSecond
-  addXCBuildConfigurationSecond(project, BuildType.release, flavor, uuidReleaseRef, uuidReleaseBuildConfiguration2, projectSettings);
-  addXCBuildConfigurationSecond(project, BuildType.debug, flavor, uuidDebugRef, uuidDebugBuildConfiguration2, projectSettings);
-  addXCBuildConfigurationSecond(project, BuildType.profile, flavor, uuidReleaseRef, uuidProfileBuildConfiguration2, projectSettings);
+  // Debug & Release: file references, build files, groups, resources
+  for (final type in [BuildType.release, BuildType.debug]) {
+    addPBXBuildFile(project, type, flavor, fileUuid[type]!, refUuid[type]!);
+    addPBXFileReference(project, type, flavor, refUuid[type]!);
+    addPBXGroup(project, type, flavor, refUuid[type]!);
+    addPBXResourcesBuildPhase(project, type, flavor, fileUuid[type]!);
+  }
+
+  // All three types: configuration lists and build configurations
+  for (final type in BuildType.values) {
+    addXCConfigurationList(project, type, flavor, configUuid1[type]!);
+    addXCConfigurationListNativeTarget(project, type, flavor, configUuid2[type]!);
+    addXCBuildConfiguration(project, type, refFor(type), configUuid1[type]!, config, projectSettings);
+    addXCBuildConfigurationSecond(project, type, flavor, refFor(type), configUuid2[type]!, projectSettings);
+  }
 
   await project.save();
 }
