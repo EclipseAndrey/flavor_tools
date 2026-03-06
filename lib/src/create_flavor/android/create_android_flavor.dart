@@ -14,8 +14,9 @@ Future<void> createAndroidFlavor(FlavorConfig config) async {
   final file = File(gradlePath);
   var content = await file.readAsString();
 
-  content = addFlavorDimension(content, dimension);
-  content = addOrUpdateProductFlavors(content, flavorName, dimension, displayName, androidPackage);
+  final isKotlinDsl = config.isKotlinDsl;
+  content = addFlavorDimension(content, dimension, isKotlinDsl: isKotlinDsl);
+  content = addOrUpdateProductFlavors(content, flavorName, dimension, displayName, androidPackage, isKotlinDsl: isKotlinDsl);
 
   await file.writeAsString(content);
 

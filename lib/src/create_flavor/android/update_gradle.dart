@@ -1,26 +1,62 @@
-String addFlavorDimension(String content, String dimension) {
+String addFlavorDimension(String content, String dimension, {required bool isKotlinDsl}) {
+  if (isKotlinDsl) {
+    final flavorDimensionsRegex = RegExp(r'flavorDimensions\s*\+=?\s*"([^"]+)"');
+    if (flavorDimensionsRegex.hasMatch(content)) {
+      return content;
+    }
+    final androidSectionRegex = RegExp(r'android\s*\{');
+    final match = androidSectionRegex.firstMatch(content);
+    if (match != null) {
+      return content.replaceRange(match.end, match.end, '''
+
+    flavorDimensions += "$dimension"''');
+    }
+    throw Exception('The android section not found in the build.gradle.kts file.');
+  }
+
   final flavorDimensionsRegex = RegExp(r'flavorDimensions\s+"([^"]+)"');
   if (flavorDimensionsRegex.hasMatch(content)) {
     return content;
-  } else {
-    final androidSectionRegex = RegExp(r'android\s*\{');
-    final match = androidSectionRegex.firstMatch(content);
-
-    if (match != null) {
-      final insertPosition = match.end;
-      final updatedContent = content.replaceRange(insertPosition, insertPosition, '''
+  }
+  final androidSectionRegex = RegExp(r'android\s*\{');
+  final match = androidSectionRegex.firstMatch(content);
+  if (match != null) {
+    return content.replaceRange(match.end, match.end, '''
 
     flavorDimensions "$dimension"''');
-      return updatedContent;
-    } else {
-      throw Exception('The android section not found in the build.gradle file.');
-    }
   }
+  throw Exception('The android section not found in the build.gradle file.');
 }
 
 String addOrUpdateProductFlavors(
-    String content, String flavorName, String dimension, String displayName, String androidPackage) {
+    String content, String flavorName, String dimension, String displayName, String androidPackage,
+    {required bool isKotlinDsl}) {
   final productFlavorsRegex = RegExp(r'productFlavors\s*\{');
+
+  if (isKotlinDsl) {
+    final flavorBlock = '''
+
+        create("$flavorName") {
+            dimension = "$dimension"
+            resValue("string", "app_name", "$displayName")
+            applicationId = "$androidPackage"
+        }
+''';
+    final match = productFlavorsRegex.firstMatch(content);
+    if (match != null) {
+      return content.replaceRange(match.end, match.end, flavorBlock);
+    }
+    final androidSectionRegex = RegExp(r'android\s*\{');
+    final androidMatch = androidSectionRegex.firstMatch(content);
+    if (androidMatch != null) {
+      return content.replaceRange(androidMatch.end, androidMatch.end, '''
+
+    productFlavors {$flavorBlock
+    }''');
+    }
+    throw Exception('The android section not found in the build.gradle.kts file.');
+  }
+
   final flavorBlock = '''
 
         $flavorName {
@@ -29,26 +65,17 @@ String addOrUpdateProductFlavors(
             applicationId "$androidPackage"
         }
 ''';
-
   final match = productFlavorsRegex.firstMatch(content);
-
   if (match != null) {
-    final insertPosition = match.end;
-    final updatedContent = content.replaceRange(insertPosition, insertPosition, flavorBlock);
-    return updatedContent;
-  } else {
-    final androidSectionRegex = RegExp(r'android\s*\{');
-    final androidMatch = androidSectionRegex.firstMatch(content);
-
-    if (androidMatch != null) {
-      final insertPosition = androidMatch.end;
-      final updatedContent = content.replaceRange(insertPosition, insertPosition, '''
+    return content.replaceRange(match.end, match.end, flavorBlock);
+  }
+  final androidSectionRegex = RegExp(r'android\s*\{');
+  final androidMatch = androidSectionRegex.firstMatch(content);
+  if (androidMatch != null) {
+    return content.replaceRange(androidMatch.end, androidMatch.end, '''
 
     productFlavors {$flavorBlock
     }''');
-      return updatedContent;
-    } else {
-      throw Exception('The android section not found in the build.gradle file.');
-    }
   }
+  throw Exception('The android section not found in the build.gradle file.');
 }

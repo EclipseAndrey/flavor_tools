@@ -35,7 +35,7 @@ class FlavorConfig {
   final String runnerEntitlementsPath = 'ios/Runner/Runner.entitlements';
   final String plistPath = 'ios/Runner/Info.plist';
   final String manifestPath = 'android/app/src/main/AndroidManifest.xml';
-  final String buildGradlePath = 'android/app/build.gradle';
+  late final String buildGradlePath = _detectGradlePath();
   final String iosTeamId;
   final bool isEnabledIconsLauncher;
 
@@ -43,6 +43,8 @@ class FlavorConfig {
   String get ASSETCATALOG_COMPILER_APPICON_NAME => isEnabledIconsLauncher ? '"\${app_display_icon}"' : 'AppIcon';
   // ignore: non_constant_identifier_names
   String get APP_DISPLAY_NAME => '"\${app_display_name}"';
+
+  bool get isKotlinDsl => buildGradlePath.endsWith('.kts');
 
   FlavorConfig({
     this.xcPath = 'ios/Runner.xcodeproj/project.pbxproj',
@@ -54,6 +56,12 @@ class FlavorConfig {
     this.dimension = 'default',
     this.isEnabledIconsLauncher = false,
   });
+
+  static String _detectGradlePath() {
+    final ktsFile = File('android/app/build.gradle.kts');
+    if (ktsFile.existsSync()) return 'android/app/build.gradle.kts';
+    return 'android/app/build.gradle';
+  }
 }
 
 Future<void> createFlavor(FlavorConfig config) async {
