@@ -1,3 +1,11 @@
+## 2.1.0
+
+### New features
+- **`DEVELOPMENT_TEAM` is now written to the `PBXNativeTarget "Runner"` build configurations** (previously only set on the `PBXProject` level). This removes the "Signing for 'Runner' requires a development team" error on first `flutter build ipa` for a fresh flavor. The team value is taken from `team_id` in `flavor_tools.yaml` or the `-t` CLI flag.
+- **Optional `pod install` step** — after creating a flavor, `flavor_tools` can automatically run `pod install` in `ios/` so CocoaPods generates flavor-specific `Pods-Runner.{debug,profile,release}-<flavor>.xcconfig` files immediately (previously they appeared only on the next `flutter build`). Enable via:
+  - YAML: `pod_install: true` inside a flavor block
+  - CLI: `--podInstall` flag for `create` and `create-all`
+
 ## 2.0.3
 
 - Added validation for Gradle file existence before Android flavor creation

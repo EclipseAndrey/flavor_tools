@@ -20,13 +20,13 @@ MapPbx createXCConfigurationFirst(BuildType type, String uuidRef, String uuid, S
 }
 
 MapPbx createXCConfigurationSecond(
-    BuildType type, flavor, String uuidRef, String uuid, ExistingProjectSettings projectSettings) {
-  final config = createXCConfigurationSecondDebug(type, flavor, uuidRef, uuid, projectSettings);
+    BuildType type, FlavorConfig config, String uuidRef, String uuid, ExistingProjectSettings projectSettings) {
+  final configXC = createXCConfigurationSecondDebug(type, config, uuidRef, uuid, projectSettings);
   switch (type) {
     case BuildType.debug:
-      return config;
+      return configXC;
     case BuildType.profile:
-      final buildSettings = config.find<MapPbx>('buildSettings');
+      final buildSettings = configXC.find<MapPbx>('buildSettings');
       buildSettings?.replaceOrAdd(MapEntryPbx('DEBUG_INFORMATION_FORMAT', VarPbx('"dwarf-with-dsym"')));
       buildSettings?.replaceOrAdd(MapEntryPbx('ENABLE_NS_ASSERTIONS', VarPbx('NO')));
       buildSettings?.replaceOrAdd(MapEntryPbx('SUPPORTED_PLATFORMS', VarPbx('iphoneos')));
@@ -37,9 +37,9 @@ MapPbx createXCConfigurationSecond(
       buildSettings?.remove('GCC_OPTIMIZATION_LEVEL');
       buildSettings?.remove('GCC_PREPROCESSOR_DEFINITIONS');
       buildSettings?.remove('ONLY_ACTIVE_ARCH');
-      return config;
+      return configXC;
     case BuildType.release:
-      final buildSettings = config.find<MapPbx>('buildSettings');
+      final buildSettings = configXC.find<MapPbx>('buildSettings');
       buildSettings?.replaceOrAdd(MapEntryPbx('DEBUG_INFORMATION_FORMAT', VarPbx('"dwarf-with-dsym"')));
       buildSettings?.replaceOrAdd(MapEntryPbx('ENABLE_NS_ASSERTIONS', VarPbx('NO')));
       buildSettings?.replaceOrAdd(MapEntryPbx('MTL_ENABLE_DEBUG_INFO', VarPbx('NO')));
@@ -51,7 +51,7 @@ MapPbx createXCConfigurationSecond(
       buildSettings?.remove('GCC_OPTIMIZATION_LEVEL');
       buildSettings?.remove('GCC_PREPROCESSOR_DEFINITIONS');
       buildSettings?.remove('ONLY_ACTIVE_ARCH');
-      return config;
+      return configXC;
   }
 }
 
@@ -100,10 +100,10 @@ MapPbx createXCConfigurationFirstDebug(
 }
 
 MapPbx createXCConfigurationSecondDebug(
-    BuildType type, String flavor, String uuidRef, String uuid, ExistingProjectSettings projectSettings) {
-  return MapPbx(uuid: uuid, comment: '$type-$flavor', children: [
+    BuildType type, FlavorConfig config, String uuidRef, String uuid, ExistingProjectSettings projectSettings) {
+  return MapPbx(uuid: uuid, comment: '$type-${config.flavorName}', children: [
     MapEntryPbx('isa', VarPbx('XCBuildConfiguration')),
-    MapEntryPbx('baseConfigurationReference', VarPbx(uuidRef), comment: '$type-$flavor.xcconfig'),
+    MapEntryPbx('baseConfigurationReference', VarPbx(uuidRef), comment: '$type-${config.flavorName}.xcconfig'),
     MapPbx(uuid: 'buildSettings', children: [
       MapEntryPbx('ALWAYS_SEARCH_USER_PATHS', VarPbx('NO')),
       MapEntryPbx('CLANG_ANALYZER_NONNULL', VarPbx('YES')),
@@ -133,6 +133,7 @@ MapPbx createXCConfigurationSecondDebug(
       MapEntryPbx('"CODE_SIGN_IDENTITY[sdk=iphoneos*]"', VarPbx('"Apple Development"')),
       MapEntryPbx('COPY_PHASE_STRIP', VarPbx('NO')),
       MapEntryPbx('DEBUG_INFORMATION_FORMAT', VarPbx('dwarf')),
+      MapEntryPbx('DEVELOPMENT_TEAM', VarPbx(config.iosTeamId)),
       MapEntryPbx('ENABLE_STRICT_OBJC_MSGSEND', VarPbx('YES')),
       MapEntryPbx('ENABLE_TESTABILITY', VarPbx('YES')),
       MapEntryPbx('GCC_C_LANGUAGE_STANDARD', VarPbx(projectSettings.gccCLanguageStandard)),
@@ -155,6 +156,6 @@ MapPbx createXCConfigurationSecondDebug(
       MapEntryPbx('SDKROOT', VarPbx('iphoneos')),
       MapEntryPbx('TARGETED_DEVICE_FAMILY', VarPbx(projectSettings.targetedDeviceFamily)),
     ]),
-    MapEntryPbx('name', VarPbx('"$type-$flavor"')),
+    MapEntryPbx('name', VarPbx('"$type-${config.flavorName}"')),
   ]);
 }

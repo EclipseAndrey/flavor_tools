@@ -46,7 +46,9 @@ class CreateCommand extends Command {
       ..addOption('flavorName', abbr: 'f', help: 'Flavor name of the application.')
       ..addOption('pathXcProject', abbr: 'x', help: 'Path to the Xcode project (optional).')
       ..addOption('iconsLauncher', help: 'Supports icons (optional).', defaultsTo: 'false')
-      ..addOption('teamId', abbr: 't', help: 'Team ID of the IOS application (DEFAULT: none).', defaultsTo: '""');
+      ..addOption('teamId', abbr: 't', help: 'Team ID of the IOS application (DEFAULT: none).', defaultsTo: '""')
+      ..addFlag('podInstall',
+          help: 'Run "pod install" in ios/ after creating the flavor.', defaultsTo: false, negatable: false);
   }
 
   @override
@@ -63,6 +65,7 @@ class CreateCommand extends Command {
     var flavorName = argResults?['flavorName'];
     var pathXcProject = argResults?['pathXcProject'];
     var teamId = argResults?['teamId'];
+    var podInstall = argResults?['podInstall'] as bool? ?? false;
 
     print('Creating flavor with the following details:');
     print('Package Name: $packageName');
@@ -73,13 +76,15 @@ class CreateCommand extends Command {
     print('Path to Xcode Project: $pathXcProject');
 
     final config = FlavorConfig(
-        xcPath: pathXcProject ?? 'ios/Runner.xcodeproj/project.pbxproj',
-        iosPackageName: (packageNameIos ?? packageName)!,
-        androidPackageName: (packageNameAndroid ?? packageName)!,
-        displayName: displayName,
-        flavorName: flavorName,
-        iosTeamId: teamId,
-        isEnabledIconsLauncher: (argResults?['iconsLauncher'] ?? 'false') == 'true');
+      xcPath: pathXcProject ?? 'ios/Runner.xcodeproj/project.pbxproj',
+      iosPackageName: (packageNameIos ?? packageName)!,
+      androidPackageName: (packageNameAndroid ?? packageName)!,
+      displayName: displayName,
+      flavorName: flavorName,
+      iosTeamId: teamId,
+      isEnabledIconsLauncher: (argResults?['iconsLauncher'] ?? 'false') == 'true',
+      runPodInstall: podInstall,
+    );
 
     await createFlavor(config);
   }
@@ -96,7 +101,11 @@ class CreateAllCommand extends Command {
       ..addOption('config', abbr: 'c', help: 'Path to YAML config file.', defaultsTo: 'flavor_tools.yaml')
       ..addOption('pathXcProject', abbr: 'x', help: 'Path to the Xcode project (optional).')
       ..addOption('teamId', abbr: 't', help: 'Team ID of the iOS application.', defaultsTo: '""')
-      ..addOption('iconsLauncher', help: 'Supports icons (optional).', defaultsTo: 'false');
+      ..addOption('iconsLauncher', help: 'Supports icons (optional).', defaultsTo: 'false')
+      ..addFlag('podInstall',
+          help: 'Run "pod install" in ios/ after creating each new flavor.',
+          defaultsTo: false,
+          negatable: false);
   }
 
   @override
@@ -105,6 +114,7 @@ class CreateAllCommand extends Command {
     final pathXcProject = argResults?['pathXcProject'];
     final teamId = argResults?['teamId'] ?? '""';
     final iconsLauncher = (argResults?['iconsLauncher'] ?? 'false') == 'true';
+    final podInstallCli = argResults?['podInstall'] as bool? ?? false;
 
     final file = File(configPath);
     if (!await file.exists()) {
@@ -176,6 +186,7 @@ class CreateAllCommand extends Command {
         iosTeamId: props['team_id'] as String? ?? teamId,
         dimension: dimension,
         isEnabledIconsLauncher: props['icons_launcher'] as bool? ?? iconsLauncher,
+        runPodInstall: props['pod_install'] as bool? ?? podInstallCli,
       );
 
       await createFlavor(config);

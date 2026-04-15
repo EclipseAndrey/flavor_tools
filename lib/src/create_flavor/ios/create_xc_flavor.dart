@@ -62,7 +62,7 @@ Future<void> createXcFlavor(FlavorConfig config) async {
     addXCConfigurationList(project, type, flavor, configUuid1[type]!);
     addXCConfigurationListNativeTarget(project, type, flavor, configUuid2[type]!);
     addXCBuildConfiguration(project, type, refFor(type), configUuid1[type]!, config, projectSettings);
-    addXCBuildConfigurationSecond(project, type, flavor, refFor(type), configUuid2[type]!, projectSettings);
+    addXCBuildConfigurationSecond(project, type, config, refFor(type), configUuid2[type]!, projectSettings);
   }
 
   await project.save();
@@ -188,11 +188,11 @@ Pbxproj addXCBuildConfiguration(Pbxproj project, BuildType buildType, String uui
   return project;
 }
 
-Pbxproj addXCBuildConfigurationSecond(Pbxproj project, BuildType buildType, String flavor, String uuidRef, String uuid,
-    ExistingProjectSettings projectSettings) {
+Pbxproj addXCBuildConfigurationSecond(Pbxproj project, BuildType buildType, FlavorConfig config, String uuidRef,
+    String uuid, ExistingProjectSettings projectSettings) {
   final map = project.find<MapPbx>('objects');
   final section = map?.find<SectionPbx>('XCBuildConfiguration');
-  final insertValue = createXCConfigurationSecond(buildType, flavor, uuidRef, uuid, projectSettings);
+  final insertValue = createXCConfigurationSecond(buildType, config, uuidRef, uuid, projectSettings);
   section?.add(insertValue);
   if (section == null) CreateFlavorExit.notFound(message: 'XCBuildConfiguration section not found in project.');
   return project;

@@ -38,6 +38,7 @@ class FlavorConfig {
   late final String buildGradlePath = _detectGradlePath();
   final String iosTeamId;
   final bool isEnabledIconsLauncher;
+  final bool runPodInstall;
 
   // ignore: non_constant_identifier_names
   String get ASSETCATALOG_COMPILER_APPICON_NAME => isEnabledIconsLauncher ? '"\${app_display_icon}"' : 'AppIcon';
@@ -55,6 +56,7 @@ class FlavorConfig {
     required this.iosTeamId,
     this.dimension = 'default',
     this.isEnabledIconsLauncher = false,
+    this.runPodInstall = false,
   });
 
   static String _detectGradlePath() {
@@ -67,4 +69,13 @@ class FlavorConfig {
 Future<void> createFlavor(FlavorConfig config) async {
   await createXcFlavor(config);
   await createAndroidFlavor(config);
+  if (config.runPodInstall) {
+    print('Running pod install...');
+    final result = await Process.run('pod', ['install'], workingDirectory: 'ios', runInShell: true);
+    stdout.write(result.stdout);
+    stderr.write(result.stderr);
+    if (result.exitCode != 0) {
+      print('pod install exited with code ${result.exitCode}');
+    }
+  }
 }
