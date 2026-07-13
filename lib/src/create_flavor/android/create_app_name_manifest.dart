@@ -13,10 +13,15 @@ Future<void> updateAndroidManifest(String manifestPath) async {
     final applicationTag = applicationMatch.group(0)!;
 
     if (!androidLabelRegex.hasMatch(applicationTag)) {
-      final updatedApplicationTag = applicationTag.replaceFirst(
-        RegExp(r'<application'),
-        '<application android:label="@string/app_name"',
-      );
+      // The Flutter template ships android:label="<project_name>" — replace it
+      // instead of adding a duplicate attribute.
+      final existingLabelRegex = RegExp(r'android:label="[^"]*"');
+      final updatedApplicationTag = existingLabelRegex.hasMatch(applicationTag)
+          ? applicationTag.replaceFirst(existingLabelRegex, 'android:label="@string/app_name"')
+          : applicationTag.replaceFirst(
+              RegExp(r'<application'),
+              '<application android:label="@string/app_name"',
+            );
 
       content = content.replaceRange(
         applicationMatch.start,

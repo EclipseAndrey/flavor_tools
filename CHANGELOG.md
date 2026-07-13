@@ -1,3 +1,9 @@
+## 2.2.0
+
+### AGP 9 / Gradle 9 support
+- **`buildFeatures { resValues = true }` is now added automatically** to `build.gradle.kts` when creating a flavor. AGP 9 disables the `resValues` build feature by default, which broke builds using the generated `resValue("string", "app_name", ...)`. Groovy `build.gradle` (old Gradle/AGP) is intentionally left untouched — `resValues` is enabled by default there.
+- **Fixed duplicate `android:label` in AndroidManifest.xml** — an existing label (e.g. `android:label="my_app"` from the Flutter template) is now replaced with `@string/app_name` instead of adding a second attribute, which produced invalid XML.
+
 ## 2.1.0
 
 ### New features

@@ -19,6 +19,7 @@ Future<void> createAndroidFlavor(FlavorConfig config) async {
   var content = await file.readAsString();
 
   final isKotlinDsl = config.isKotlinDsl;
+  content = ensureResValuesEnabled(content, isKotlinDsl: isKotlinDsl);
   content = addFlavorDimension(content, dimension, isKotlinDsl: isKotlinDsl);
   content = addOrUpdateProductFlavors(content, flavorName, dimension, displayName, androidPackage, isKotlinDsl: isKotlinDsl);
 

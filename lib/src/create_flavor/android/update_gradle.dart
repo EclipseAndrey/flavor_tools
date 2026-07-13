@@ -28,6 +28,34 @@ String addFlavorDimension(String content, String dimension, {required bool isKot
   throw Exception('The android section not found in the build.gradle file.');
 }
 
+/// AGP 9 disables the `resValues` build feature by default, but generated
+/// flavors rely on resValue("string", "app_name", ...). Groovy DSL (old
+/// Gradle/AGP) is left untouched — resValues is enabled by default there.
+String ensureResValuesEnabled(String content, {required bool isKotlinDsl}) {
+  if (!isKotlinDsl) return content;
+  if (RegExp(r'resValues\s*=\s*true').hasMatch(content)) {
+    return content;
+  }
+
+  final buildFeaturesMatch = RegExp(r'buildFeatures\s*\{').firstMatch(content);
+  if (buildFeaturesMatch != null) {
+    return content.replaceRange(buildFeaturesMatch.end, buildFeaturesMatch.end, '''
+
+        resValues = true''');
+  }
+
+  final androidMatch = RegExp(r'android\s*\{').firstMatch(content);
+  if (androidMatch != null) {
+    return content.replaceRange(androidMatch.end, androidMatch.end, '''
+
+    buildFeatures {
+        // Required for resValue("string", "app_name", ...) on AGP 9+.
+        resValues = true
+    }''');
+  }
+  throw Exception('The android section not found in the build.gradle.kts file.');
+}
+
 bool flavorExistsInGradle(String content, String flavorName, {required bool isKotlinDsl}) {
   if (isKotlinDsl) {
     return RegExp('create\\s*\\(\\s*"$flavorName"\\s*\\)').hasMatch(content);
